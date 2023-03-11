@@ -67,3 +67,44 @@ def crawl_friends_list(profile="https://mbasic.facebook.com/USERNAME"):
 	        break
 
 	return pd.DataFrame({"Name": friends})
+
+
+
+def extract_reactions(url, react='love', post_title='dpAtAirport'):
+	# it takes the url to list of love/like/wow/care reaction of a post/photo, not the url to post/photo
+	# e.g. url = "https://mbasic.facebook.com/ufi/reaction/profile/browser/fetch/?ft_ent_identifier=pfbid02tLqD2SL6dbugRWM4XgZwjgrnxEEJUChbj3wTCoMbtEM9HShv7MHjEa8R3aUpqAYEl&limit=10&reaction_type=16&reaction_id=613557422527858&total_count=2&paipv=0&eav=AfbNJlNIXZ7t0QFf-4_o60AhFfAomLRc3vdoKXhveAQAkaJQmi9__4J4IRKlHvbnZGA"
+
+	root_url = "https://mbasic.facebook.com"
+
+	friends_reacted = []
+	# idx = 1
+
+	while True:
+	    time.sleep(5)
+	    driver.get(url)
+	    html = driver.page_source
+	    html = BeautifulSoup(html)
+	    names = html.find_all(class_ = "bj")
+	    for name in names:
+	        friend = name.text.split('1')[0]
+	        friends_reacted.append(friend)
+	        # print(idx, friend)
+	        # idx += 1
+	    
+	    next_page_url = html.find_all("a")
+	    next_page_url = next_page_url[-1]['href']
+		# print(next_page_url)
+	    url = root_url + next_page_url
+	    
+		# print(url)
+	    
+	    if len(url) < 150:
+	        break
+
+	df = pd.DataFrame({
+	    "Name": list(set(friends_reacted)), 
+	    "Reaction": [react for _ in range(len(list(set(friends_reacted))))],
+	    "Post_Type": [post_title for _ in range(len(list(set(friends_reacted))))],
+	})
+
+	return df
